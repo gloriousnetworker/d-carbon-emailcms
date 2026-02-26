@@ -41,7 +41,7 @@ export default function Home() {
               <li>Live template rendering</li>
               <li>Draft/Published toggle</li>
               <li>Sample data injection</li>
-              <li>Responsive preview</li>
+              <li>Responsive previews</li>
             </ul>
           </div>
         </div>
