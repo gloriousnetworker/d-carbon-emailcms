@@ -30,6 +30,7 @@ type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export default function PreviewContent() {
   const searchParams = useSearchParams();
   const templateKey = searchParams.get('templateKey');
+  const documentId = searchParams.get('documentId');
   const status = searchParams.get('status') || 'draft';
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,17 +80,21 @@ export default function PreviewContent() {
 
   useEffect(() => {
     const fetchTemplate = async () => {
-      if (!templateKey) {
-        setError('No template key provided');
+      if (!templateKey && !documentId) {
+        setError('No template identifier provided');
         setLoading(false);
         return;
       }
 
       try {
         const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-        const params = new URLSearchParams({
-          'filters[templateKey][$eq]': templateKey,
-        });
+        const params = new URLSearchParams();
+        
+        if (templateKey) {
+          params.append('filters[templateKey][$eq]', templateKey);
+        } else if (documentId) {
+          params.append('filters[documentId][$eq]', documentId);
+        }
         
         if (status === 'draft') {
           params.append('status', 'draft');
@@ -122,7 +127,7 @@ export default function PreviewContent() {
     };
 
     fetchTemplate();
-  }, [templateKey, status]);
+  }, [templateKey, documentId, status]);
 
   const deviceWidths = {
     mobile: 'w-[375px]',
@@ -318,12 +323,7 @@ export default function PreviewContent() {
           <div className="p-4 sm:p-6 md:p-8 overflow-x-auto">
             <div className={`mx-auto transition-all duration-300 ${deviceWidths[device]}`}>
               {renderedHtml ? (
-                <iframe
-                  srcDoc={renderedHtml}
-                  className="w-full min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] border-0 rounded-lg"
-                  title="Email Preview"
-                  sandbox="allow-same-origin allow-popups"
-                />
+                <div dangerouslySetInnerHTML={{ __html: renderedHtml }} />
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No HTML content in template</p>
